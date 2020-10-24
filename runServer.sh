@@ -1,1 +1,1 @@
-sudo python3 -m flask run --host='0.0.0.0' --port=443 --cert=adhoc
+sudo gunicorn --certfile cert.pem --keyfile key.pem -b 0.0.0.0:443 app:app
