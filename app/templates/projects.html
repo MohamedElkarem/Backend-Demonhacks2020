@@ -1,0 +1,146 @@
+{% extends "header.html" %} {% block content %}
+<!-- <h1>Project Branches</h1>
+<br> -->
+<div class="projects-page">
+    <div class="projectdeets" style="text-align: center;">
+        {% if perm == "perm0" %}
+        <h2>Welcome, Prof. {{ name }}!</h2>
+        {% endif %}
+        <!-- add correct perm when those are sorted lol ...--->
+        {% if teach and proj %}
+        <h1>{{proj.getProjectName()}}</h1>
+        <h3><b>Project Goal:</b> {{ proj.getProjectDesc() }}. </h3>
+        {% endif %}
+    </div>
+    <div class="project-glance" style="text-align: center;">
+        <h1>Project at a glance:</h1>
+        <div class="project-info">
+            <p style="margin: 4px;"><b>Project Weight:</b> {{projWeight}}</p><p style="margin: 4px;">
+        </div>
+        <div class="project-info">
+            <p style="margin: 4px;"><b>Project Goal:</b> {{projGoal}}</p>
+        </div>
+        <div class="project-info">
+            <p style="margin: 4px;"><b>Project Growth Status:</b> {{projGrowthStatus}}%</p>
+        </div>
+        <div class="project-info">
+            <p style="margin: 4px;"><b>Students in project: </b>
+            {% for studentID,studentObj in studentsOnProject.items() %}
+                {{studentObj.getFirstName()}}
+            {% endfor %}</p>
+        </div>
+    </div>
+
+
+    </div>
+    <div class="branches">
+        <div class="bCenter">
+            {% for branch in branches%}
+            <div class="logColumn">
+                <!-- I would like to personally apologize for the following 6 lines - -->
+                <div style="width: 100%; text-align: center;">
+                    <h1>{{branch.getBranchDesc()}}</h1>
+                    {% if branch.getResolved() %}
+                    <img style="float:right; width: 50px; height:50px;" src="/static/img/red_checkmark.png">
+                    {% endif %}
+                </div>
+                <div class="logImage">
+                    {% if branch.getBranchID() in tasksPerBranch%}
+                    {% for task in tasksPerBranch[branch.getBranchID()]%}
+                    <td>
+                        <div class="addingImage">
+                            <a href="/task?taskID={{task.getTaskID()}}" class="fill-div">
+                                <div class="boxLeaf">
+                                    <p><b>&nbsp;{{task.getTaskDesc()}}</b></p>
+                                </div>
+                            </a>
+                        </div>
+                    </td>
+                    {% endfor %}
+                    {% endif%}
+                    <form
+                        action="/task/addtasktobranch?branchID={{branch.getBranchID()}}&projectID={{branch.getProjectID()}}"
+                        method=post>
+                        <div class="modal fade" id="modalLoginForm_{{branch.getBranchID()}}" tabindex="-1" role="dialog"
+                            aria-labelledby="myModalLabel" aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header text-center">
+                                        <h4 class="modal-title w-100 font-weight-bold">Add a new Leaf</h4>
+                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body mx-4">
+                                        <div class="md-form mb-4">
+                                            <h1 class="text-center">Students on this branch</h1>
+                                            {% for studentID in branch.getStudents() %}
+                                            <h6 class="text-center font-weight-bold">
+                                                {{ studentsOnProject[studentID].getFirstName()}} :
+                                                <input required id="awardoption" type="radio" name="user" 
+                                                    value="{{studentsOnProject[studentID].getStudentID()}}">
+                                            </h6>
+                                            {% endfor %}
+                                        </div>
+                                        <div class="md-form mb-4">
+                                            <input required name="title" class="form-control validate" placeholder="Leaf Title">
+                                        </div>
+                                        <div class="md-form mb-4">
+                                            <input required name="weight" class="form-control validate" placeholder="Leaf Difficulty 0-10">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-success">Submit</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <a href="" class="btn btn-success btn-rounded mb-4" data-toggle="modal"
+                                data-target="#modalLoginForm_{{branch.getBranchID()}}">Add a LEAF</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        </form>
+        <br> {% if perm == "perm0" %}
+        <button type="button" id="btnAddCol">Add Branch</button>
+        </br>
+        <button type="button" id="btnAdd">Add Task</button>
+        </br>
+        <button type="button" id="branchUpdate">Update Branches & Tasks</button>
+        </br>
+        {% endif %}
+    </div>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script lang="js">
+        $(document).ready(function () {
+            $('#btnAdd').click(function () {
+                var count = 1,
+                    first_row = $('#branch-content');
+                while (count-- > 0) first_row.clone().appendTo('#branch-grid');
+            });
+            var myform = $('#myform'),
+                iter = 6;
+            $('#btnAddCol').click(function () {
+                myform.find('tr').each(function () {
+                    var trow = $(this);
+                    if (trow.index() === 0) {
+                        trow.append('<td><b>Branch' + " " + +iter + '</b></td>');
+                    } else {
+                        trow.append('<td><input type="text" placeholder="Task ' +
+                            iter +
+                            '" /> <a style="border-left: 4px solid black;" href="/task"><b>&nbsp;View Task</b></a></td>'
+                        );
+                    }
+                });
+                iter += 1;
+            });
+        });
+    </script>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends "header.html" %} {% block content %}
+<div class="home-page">
+    <h1>Welcome to Grove</h1>
+    <div class="row">
+        {% for projectTuple in projects %}
+        <div class="column">
+            {% if projectTuple[1] == "growth0" %}
+                <a href="/projects/?projectID={{projectTuple[0]}}"><img src="static/img/tree1.png" /></a>
+            {% endif %}
+            {% if projectTuple[1] == "growth1" %}
+                <a href="/projects/?projectID={{projectTuple[0]}}"><img src="static/img/tree2.png" /></a>
+            {% endif %}
+            {% if projectTuple[1] == "growth2" %}
+                <a href="/projects/?projectID={{projectTuple[0]}}"><img src="static/img/tree3.png" /></a>
+            {% endif %}
+            {% if projectTuple[1] == "growth3" %}
+                <a href="/projects/?projectID={{projectTuple[0]}}"><img src="static/img/tree4.png" /></a>
+            {% endif %}
+            {% if projectTuple[1] == "growth4" %}
+                <a href="/projects/?projectID={{projectTuple[0]}}"><img src="static/img/tree5_v2.png" /></a>
+            {% endif %}
+            <h1>Team {{projectTuple[0]}}</h1>
+            <h2>{{projectTuple[2]}}%</h2>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

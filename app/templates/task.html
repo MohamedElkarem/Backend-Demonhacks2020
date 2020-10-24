@@ -1,0 +1,179 @@
+{% extends "header.html" %} {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@9"></script>
+<script>
+    function showAlert(text){
+        let timerInterval
+        Swal.fire({
+        title: 'New chat recieved!',
+        html: text,
+        timer: 3000,
+        timerProgressBar: true,
+        onBeforeOpen: () => {
+            Swal.showLoading()
+            timerInterval = setInterval(() => {
+            const content = Swal.getContent()
+            if (content) {
+                const b = content.querySelector('b')
+                if (b) {
+                b.textContent = Swal.getTimerLeft()
+                }
+            }
+            }, 100)
+        },
+        onClose: () => {
+            clearInterval(timerInterval)
+        }
+        }).then((result) => {
+        })
+    }
+    function deleteFile(fname) {
+        const form = document.createElement('form');
+        form.method = 'post';
+        form.action = '/task/{{taskID}}';
+        const hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.name = 'filename';
+        hiddenField.value = fname;
+        form.appendChild(hiddenField);
+        document.body.appendChild(form);
+        form.submit();
+    }
+    function showNotifications(notifications) {
+        if (notifications.length == 1)
+            showAlert(notifications[0]);
+        else if (notifications.length > 1)
+            showAlert('Multiple messages recieved. See chat to view messages.');
+    }
+    showNotifications({{ notifications|safe }})
+</script>
+<div class="task-page">
+    <div class="task-description">
+        <div class="addingImage" style = "pointer-events:none;">
+            <div class="boxLeaf">
+                <p><b>&nbsp;{{taskObj.getTaskDesc()}}</b></p>
+            </div>
+            </a>
+        </div>
+        <p>Assigned to: {{taskAssignee.getFirstName()}}, Weight: {{taskObj.getWeight()}}</p>
+        {% if session['user_type'] == "STUDENT"%}
+            {% if taskReview == -1 %}
+            <form action="/task/{{taskID}}" method=post enctype=multipart/form-data>
+                <input type="hidden" name="taskreview" value="{{taskID}}">
+                <button type="submit" id="branchRev">Request Task Review</button>
+            </form>
+            {% elif taskReview == False %}
+            <form>
+                <input type="hidden" name="taskreview" value="{{taskID}}">
+                <button type="submit" id="branchRev" style = "pointer-events:none;" disabled>Waiting for Review</button>
+            </form>
+            {% else %}
+            <form>
+                <div class="appleRates">
+                    <fieldset class="rating">
+                        {% for i in range(5, 0, -1) %}
+                            {% if appleRating == i %}
+                                <input type="radio" id="star{{i}}" name="staticRating" value="{{i}}" checked disabled/><label  style = "pointer-events:none;" class = "full" for="star{{i}}"disabled ></label>
+                            {% else %}
+                                <input type="radio" id="star{{i}}" name="staticRating" value="{{i}}" disabled/><label style = "pointer-events:none;" class = "full" for="star{{i}}" disabled></label>
+                            {% endif %}
+                        {% endfor %}
+                    </fieldset>
+                </div>
+            </form>
+            {% endif %}
+        {% endif %}
+        {% if session['user_type'] == "TEACHER" and taskReview == False%}
+        <form action="/task/{{taskID}}" method=post enctype=multipart/form-data>
+            <div class="appleRates">
+                <fieldset class="rating">
+                    {% for i in range(5, 0, -1) %}
+                        
+                        <input type="radio" id="star{{i}}" name="rating" value="{{i}}" /><label class = "full" for="star{{i}}" ></label>
+                    {% endfor %}
+                </fieldset>
+            </div>
+            <input type="hidden" name="taskresolve" value="{{taskID}}">
+            <button type="submit" id="branchRev">Resolve Review</button>
+        </form>
+        {% endif %}
+        {% if session['user_type'] == "TEACHER" and taskReview == True%}
+        <form action="/task/{{taskID}}" method=post enctype=multipart/form-data>
+            <div class= "appleRates">
+                <fieldset class="rating">
+                    {% for i in range(5, 0, -1) %}
+                        {% if appleRating == i %}
+                            <input type="radio" id="star{{i}}" name="rating" value="{{i}}" checked /><label class = "full" for="star{{i}}" ></label>
+                        {% else %}
+                            <input type="radio" id="star{{i}}" name="rating" value="{{i}}" /><label class = "full" for="star{{i}}" ></label>
+                        {% endif %}
+                    {% endfor %}
+                </fieldset>
+            </div>
+            <input type="hidden" name="taskresolve" value="{{taskID}}">
+            <button type="submit" id="branchRev">Update Review</button>
+        </form>
+        {% endif %}
+        {% if taskObj.getResolved() %}
+        <img style="width: 50px; height:50px;" src="/static/img/red_checkmark.png">
+        {% endif %}
+    </div>
+    <div class="tasks">
+        <div class="files">
+            <h2>List of Files</h2>
+            <div class="list-files">
+                <ul class="vertical">
+                    {% for file in files%}
+                    <li>
+                        <a href="{{file.getFile()}}" download>{{file.getFileName()}}</a>
+                        <input type="image" align="right" style="padding-top: 10px;padding-right: 10px;" height=40px
+                            src="/static/img/delete-icon.png" onclick="deleteFile('{{file.getFileName()}}');">
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <form action="/task/{{taskID}}" method=post enctype=multipart/form-data>
+                <div class="uploadDiv">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <button type="submit" value=Upload class="input-group-text" style="margin-top: 0px;"
+                                id="inputGroupFileAddon01">Upload</button>
+                        </div>
+                        <div class="custom-file">
+                            <input type="file" name="fileType" class="custom-file-input" id="inputGroupFile01"
+                                aria-describedby="inputGroupFileAddon01">
+                            <label class="custom-file-label" for="inputGroupFile01">Choose file</label>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+        <div class="chat-box">
+            <h2>Chat Messages</h2>
+            <div class="chat">
+                {% for message in messages%} {%if message.getUserName() == name %}
+                <div class="message darker">
+                    <h3>{{message.getUserName()}}</h3>
+                    <p>{{message.getMessageString()}}</p>
+                    <span class="time-right">{{message.getTimeStamp()}}</span>
+                </div>
+                {% else %}
+                <div class="message">
+                    <h3>{{message.getUserName()}}</h3>
+                    <p>{{message.getMessageString()}}</p>
+                    <span class="time-right">{{message.getTimeStamp()}}</span>
+                </div>
+                {% endif %} {% endfor %}
+            </div>
+            <form action="/task/{{taskID}}" method=post>
+                <div class="chat-message">
+                    <input class="chat-input" type="text" name="message" placeholder="enter your message" />
+                    <button type="submit">Send</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
